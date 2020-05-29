@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <list>
 
 using namespace std;
 
@@ -9,7 +10,7 @@ class Hash_table
 {
 private:
 
-	vector<vector<int>> v;
+	vector<list<vector<int>>> v;
 	int max_size;
 	int cur_size;
 	int a, b, p;
@@ -31,24 +32,47 @@ public:
 		a = rand() % (p - 1) + 1;
 		b = rand() % p;
 
-		v.resize(max_size, { NULL, NULL });
+		v.resize(max_size);
 	}
 
 	void insert(const int key, const int value)
 	{
-		v[func(key)] = { key, value };
+		int i = func(key);
 		++cur_size;
+
+		v[i].push_back({ key, value });
 	}
 
 	void del(const int key)
 	{
-		v[func(key)] = { NULL, NULL };
-		--cur_size;
+		int i = func(key);
+		cur_size--;
+
+		if (v[i].size() <= 1)
+			v[i] = {};
+		else
+		{
+			auto it = v[i].begin();
+			do
+			{
+				if ((*it)[0] == key)
+					break;
+				it++;
+			} while (it != v[i].end());
+			v[i].erase(it);
+		}
 	}
 
 	int val(const int key)
 	{
-		return v[func(key)][1];
+		int i = func(key);
+
+		auto it = v[i].begin();
+		do
+		{
+			if ((*it)[0] == key)
+				return (*it)[1];
+		} while (it != v[i].end());
 	}
 
 	int size()
@@ -65,8 +89,14 @@ ostream& operator<<(ostream& out, Hash_table a)
 	out << "{ ";
 	for (int i = 0; i < a.max_size; i++)
 	{
-		if (a.v[i][1])
-			out << "( " << a.v[i][0] << ", " << a.v[i][1] << " ) ";
+		if (a.v[i].size())
+		{
+			auto it = a.v[i].begin();
+			do
+			{
+				out << "( " << (*it)[0] << " ; " << (*it)[1] << " ) ";
+			} while (it != a.v[i].end());
+		}
 	}
 	out << "}";
 	return out;
